@@ -26,3 +26,10 @@ xcuserdata/
 # Swift Package Manager
 .swiftpm/
 .build/
+
+# Python (commentary/)
+__pycache__/
+*.pyc
+
+# Vercel (commentary/webapp/) -- machine-specific deployment link
+.vercel/
