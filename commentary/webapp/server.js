@@ -12,10 +12,12 @@ var mimeTypes = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
+  '.mp4': 'video/mp4',
 };
 
 var server = http.createServer(function(req, res) {
-  var filePath = '.' + (req.url === '/' ? '/index.html' : req.url);
+  var urlPath = req.url.split('?')[0];
+  var filePath = '.' + (urlPath === '/' ? '/index.html' : urlPath);
   var ext = path.extname(filePath);
   var contentType = mimeTypes[ext] || 'application/octet-stream';
 

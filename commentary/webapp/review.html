@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Review procedure</title>
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Review</h1>
+    <select id="picker" aria-label="Procedure"></select>
+    <span id="status" class="status"></span>
+  </header>
+
+  <main id="main">
+    <section id="capture" class="card hidden">
+      <h2>Process a capture</h2>
+      <p class="muted">Paste a capture id from the phone to check its progress.</p>
+      <div class="row">
+        <input id="capture-id" placeholder="cap_…">
+        <button id="capture-check">Check</button>
+      </div>
+      <p id="capture-status" class="muted"></p>
+    </section>
+
+    <section id="editor" class="hidden">
+      <div class="card">
+        <label>Procedure title <input id="proc-title"></label>
+        <p class="muted" id="proc-meta"></p>
+      </div>
+
+      <section id="followups" class="card hidden">
+        <h2>Questions for the expert</h2>
+        <p class="muted">Answers are added to that step's tips.</p>
+        <div id="followup-list"></div>
+      </section>
+
+      <ol id="steps" class="steps"></ol>
+
+      <div class="actions">
+        <button id="save" class="primary">Save</button>
+        <button id="publish">Publish</button>
+        <button id="unpublish" class="hidden">Unpublish</button>
+      </div>
+    </section>
+  </main>
+
+  <template id="step-tpl">
+    <li class="step card">
+      <div class="step-head">
+        <span class="step-num"></span>
+        <span class="step-time muted"></span>
+        <span class="spacer"></span>
+        <button data-op="up" title="Move up">&uarr;</button>
+        <button data-op="down" title="Move down">&darr;</button>
+        <button data-op="merge" title="Merge with next">Merge &darr;</button>
+        <button data-op="delete" class="danger" title="Delete">Delete</button>
+      </div>
+      <div class="step-body">
+        <div class="media">
+          <img class="ref" alt="Reference">
+          <video class="clip hidden" controls muted playsinline></video>
+        </div>
+        <div class="fields">
+          <label>Title <span class="count" data-for="title" data-max="5"></span><input data-f="title"></label>
+          <label>Instruction <span class="count" data-for="instruction" data-max="12"></span><input data-f="instruction"></label>
+          <label>Check (what must be visible when done) <textarea data-f="check" rows="2"></textarea></label>
+          <label>Tips (expert's words, one per line) <textarea data-f="tips" rows="2"></textarea></label>
+          <div class="row">
+            <label>Tools (comma separated) <input data-f="tools"></label>
+            <label>Parts (comma separated) <input data-f="parts"></label>
+          </div>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <script src="config.js"></script>
+  <script src="review.js"></script>
+</body>
+</html>

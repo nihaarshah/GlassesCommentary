@@ -1,0 +1,11 @@
+# Local dev/tests for commentary/guide (deploy deps live in guide/modal_app.py images)
+modal
+fastapi[standard]
+pydantic>=2
+numpy
+opencv-python-headless
+pillow
+pytest
+httpx
+imageio-ffmpeg  # self-contained ffmpeg for clips/video_to_bundle
+anthropic

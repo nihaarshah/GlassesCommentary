@@ -19,6 +19,8 @@
 	<array>
 		<string>fb-viewapp</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Records your narration while you capture a procedure.</string>
 	<key>MWDAT</key>
 	<dict>
 		<key>AppLinkURLScheme</key>

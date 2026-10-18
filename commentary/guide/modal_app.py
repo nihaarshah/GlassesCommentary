@@ -45,7 +45,9 @@ api_image = (
 whisper_image = (
     modal.Image.from_registry("nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04", add_python="3.11")
     .apt_install("ffmpeg")
-    .pip_install("faster-whisper==1.1.1")
+    .pip_install("faster-whisper==1.1.1", "requests")
+    # Bake the weights into the image so cold starts don't download ~3 GB.
+    .run_commands(f"python -c \"from faster_whisper.utils import download_model; download_model('{config.WHISPER_MODEL}')\"")
     .add_local_python_source("guide")
 )
 
