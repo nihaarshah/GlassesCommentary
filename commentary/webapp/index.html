@@ -3,34 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=600, height=600, initial-scale=1.0, user-scalable=no">
-  <meta name="description" content="Live scene commentary from the glasses camera feed, captioned by Moondream2 on Modal.">
+  <meta name="description" content="Step-by-step guidance with photo checks, plus live scene commentary.">
   <meta name="mrbd-web-app-capable" content="yes">
-  <title>Commentary</title>
+  <title>Guide</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app">
-    <div id="home" class="screen">
-      <header class="header">
-        <h1>Commentary</h1>
-        <span class="header-meta" id="status-indicator">Ready</span>
-      </header>
-      <div class="content">
-        <div id="loading" class="loading-container hidden">
-          <div class="loading-spinner"></div>
-        </div>
-        <div id="error" class="error-container hidden">
-          <div class="error-icon">&#9888;</div>
-          <div class="error-message">Could not reach commentary server</div>
-        </div>
-        <p id="commentary-text" class="commentary-text">Waiting for the first frame&hellip;</p>
-        <p id="commentary-meta" class="meta-text"></p>
-      </div>
-      <nav class="nav-bar">
-        <button class="nav-item focusable" data-action="refresh">&#8635; Refresh</button>
-      </nav>
-    </div>
-  </div>
+  <!-- Screens are rendered into #app by app.js; one is visible at a time. -->
+  <div id="app"></div>
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

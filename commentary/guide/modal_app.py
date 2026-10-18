@@ -136,3 +136,48 @@ def seed() -> None:
     for js in sorted(SEED_DIR.glob("*.json")):
         pid = seed_remote.remote(files, js.read_text())
         print(f"seeded {js.name} -> {pid}")
+
+
+@app.function(image=api_image, secrets=_llm_secrets(), timeout=120)
+def verify_remote(reference_jpeg: bytes | None, frame_jpeg: bytes, check_text: str) -> dict:
+    """The production verifier, callable from eval/run_eval.py."""
+    from guide.verifier import make_verifier
+
+    return make_verifier()(reference_jpeg, frame_jpeg, check_text)
+
+
+@app.function(image=api_image, secrets=_llm_secrets(), timeout=120)
+def read_labels_remote(frame_jpeg: bytes) -> dict:
+    """M0 spike 3: what terminal labels and wire colors can the model read?"""
+    from guide import frames
+    from guide.llm import ImagePart, make_llm
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "terminals": {"type": "array", "items": {"type": "string"}},
+            "wires": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {"color": {"type": "string"}, "from": {"type": "string"}, "to": {"type": "string"}},
+                    "required": ["color", "from", "to"],
+                    "additionalProperties": False,
+                },
+            },
+            "unreadable": {"type": "string"},
+        },
+        "required": ["terminals", "wires", "unreadable"],
+        "additionalProperties": False,
+    }
+    return make_llm().json(
+        system="List every terminal label you can read in this photo exactly as printed, and every wire "
+        "you can trace (color, from terminal, to terminal). Put anything you can't read in 'unreadable'. "
+        "Don't guess.",
+        parts=[ImagePart(frames.display_jpeg(frame_jpeg, max_side=1568, quality=90))],
+        schema=schema,
+        model=config.VERIFY_MODEL,
+        effort="medium",
+        max_tokens=4000,
+        timeout_s=60,
+    )

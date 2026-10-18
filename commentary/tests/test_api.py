@@ -64,6 +64,9 @@ def test_run_lifecycle(client):
     for _ in range(len(proc.steps) - 1):
         r = c.post(f"/runs/{rid}/next").json()
     assert r["screen"] == "done" and r["ended_at"]
+    d = c.get("/display").json()  # Done stays up until the wearer taps Home
+    assert d["mode"] == "run" and d["run"]["screen"] == "done" and "step" not in d["run"]
+    c.post("/home")
     assert c.get("/display").json()["mode"] == "home"
 
 

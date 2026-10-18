@@ -67,7 +67,8 @@ def draw_wire(d: ImageDraw.ImageDraw, a, b, color, lane_a: int, lane_b: int, gap
     d.line(pts, fill=color, width=width, joint="curve")
 
 
-def render(step: int) -> Image.Image:
+def render(step: int, omit: frozenset[int] = frozenset(), label: bool = True) -> Image.Image:
+    """Diagram after `step`, without the wires added in steps listed in `omit`."""
     img = Image.new("RGB", (W, H), (245, 245, 240))
     d = ImageDraw.Draw(img)
     d.rectangle((0, 200, W, 220), fill=(170, 170, 170))  # DIN rail
@@ -79,11 +80,12 @@ def render(step: int) -> Image.Image:
             d.ellipse((x - 9, y - 9, x + 9, y + 9), fill=(250, 250, 250), outline=(30, 30, 30), width=2)
             d.text((x, y + (-22 if y < 200 else 22)), name, fill=(0, 0, 0), font=font(16), anchor="mm")
     for s, a, b, color, lane_a, lane_b, gap in WIRES:
-        if s <= step:
+        if s <= step and s not in omit:
             draw_wire(d, pos(*a), pos(*b), color, lane_a, lane_b, gap, 7 if s == step else 4)
     if step == 8:
         d.text((W // 2, 405), "All wires seated - tug test", fill=(20, 120, 40), font=font(20), anchor="mm")
-    d.text((8, 8), f"SEED DIAGRAM - step {step} - replace with expert photo", fill=(120, 120, 120), font=font(14))
+    if label:
+        d.text((8, 8), f"SEED DIAGRAM - step {step} - replace with expert photo", fill=(120, 120, 120), font=font(14))
     return img
 
 

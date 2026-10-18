@@ -1,9 +1,12 @@
+/* Ray-Ban Display: 600x600, additive display (black = transparent).
+   Big type (>= 24px for anything the user must read), few words, high contrast. */
+
 html, body {
   width: 600px;
   height: 600px;
   margin: 0;
   overflow: hidden;
-  background: #000000; /* transparent on the additive display */
+  background: #000000;
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
   color: #FFFFFF;
 }
@@ -12,37 +15,169 @@ html, body {
   width: 600px;
   height: 600px;
   box-sizing: border-box;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
 }
 
-.hidden {
-  display: none !important;
+.screen {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+
+.screen.center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.hidden { display: none !important; }
+
+.big { font-size: 28px; font-weight: bold; line-height: 1.3; margin: 0; }
+.muted { color: #B0B3B8; }
+.hint { font-size: 24px; color: #B0B3B8; margin: 0; }
+
+/* ------------------------------------------------------------ header */
 
 .header {
   height: 64px;
-  margin-top: 24px;
+  flex: 0 0 64px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 20px;
   background: #1C1E21;
   border-radius: 16px;
   box-sizing: border-box;
 }
 
-.header h1 {
-  font-size: 22px;
-  font-weight: bold;
-  margin: 0;
+.header h1 { font-size: 28px; font-weight: bold; margin: 0; }
+.header-meta { font-size: 24px; color: #B0B3B8; }
+
+/* ------------------------------------------------------------ buttons */
+
+.nav-bar {
+  margin-top: auto;
+  height: 88px;
+  flex: 0 0 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
-.header-meta {
-  font-size: 12px;
-  color: #B0B3B8;
+.btn, .nav-item {
+  height: 88px;
+  min-width: 200px;
+  padding: 0 20px;
+  background: #1C1E21;
+  color: #FFFFFF;
+  border: 3px solid transparent;
+  border-radius: 16px;
+  font-size: 26px;
+  font-weight: bold;
+  opacity: 0.8;
+  transition:
+    transform 475ms cubic-bezier(0.6, 0, 0.4, 1),
+    opacity 300ms cubic-bezier(0.4, 0.04, 0.5, 1);
 }
+
+.nav-bar.three .btn { min-width: 0; flex: 1; padding: 0 8px; }
+
+.btn:focus, .nav-item:focus, .list-item:focus {
+  outline: none;
+  opacity: 1.0;
+  border-color: #FFFFFF;
+  transform: scale(calc(1 - 8 / 88));
+}
+
+.btn[disabled] { opacity: 0.3; }
+
+/* ------------------------------------------------------------ home list */
+
+.list { display: flex; flex-direction: column; gap: 12px; flex: 1; justify-content: center; }
+
+.list-item {
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #1C1E21;
+  color: #FFFFFF;
+  border: 3px solid transparent;
+  border-radius: 16px;
+  opacity: 0.8;
+  text-align: left;
+  transition: transform 475ms cubic-bezier(0.6, 0, 0.4, 1), opacity 300ms;
+}
+
+.list-title { font-size: 28px; font-weight: bold; }
+.list-meta { font-size: 24px; color: #B0B3B8; white-space: nowrap; margin-left: 12px; }
+
+/* ------------------------------------------------------------ recording */
+
+.rec { display: flex; align-items: center; gap: 16px; }
+.rec-dot {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #FF3B30;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.rec-label { font-size: 40px; font-weight: bold; color: #FF3B30; letter-spacing: 2px; }
+.rec-time { font-size: 96px; font-weight: bold; font-variant-numeric: tabular-nums; }
+
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+/* ------------------------------------------------------------ step */
+
+.step-head { display: flex; align-items: baseline; gap: 16px; margin-top: 4px; }
+.step-count { font-size: 24px; font-weight: bold; color: #B0B3B8; white-space: nowrap; }
+.step-title { font-size: 32px; font-weight: bold; line-height: 1.15; }
+
+.instruction { font-size: 28px; line-height: 1.3; margin: 0; }
+
+.ref {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ref img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+.ref.small { flex: 0 0 auto; max-width: 280px; max-height: 210px; }
+
+/* ------------------------------------------------------------ result */
+
+.verdict-icon { font-size: 120px; line-height: 1; font-weight: bold; }
+.pass-icon { color: #34C759; }
+
+.warn-head { display: flex; align-items: center; gap: 16px; margin-top: 4px; }
+.warn-icon { font-size: 56px; color: #FFCC00; }
+.warn-title { font-size: 36px; font-weight: bold; color: #FFCC00; }
+
+.reason { font-size: 30px; font-weight: bold; line-height: 1.25; margin: 0; }
+
+.result-body { flex: 1; min-height: 0; display: flex; gap: 16px; align-items: center; }
+.tip { font-size: 24px; line-height: 1.3; color: #E4E6EB; margin: 0; font-style: italic; flex: 1; }
+
+/* ------------------------------------------------------------ show me */
+
+.showme { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; position: relative; }
+.showme video { max-width: 400px; max-height: 400px; border-radius: 12px; }
+.kfs { position: relative; width: 400px; height: 360px; }
+.kfs img { position: absolute; inset: 0; margin: auto; max-width: 400px; max-height: 360px; border-radius: 12px; opacity: 0; }
+.kfs img.on { opacity: 1; }
+
+/* ------------------------------------------------------------ done */
+
+.done-title { font-size: 32px; font-weight: bold; margin: 0; }
+.stats { display: flex; gap: 40px; }
+.stats div { display: flex; flex-direction: column; align-items: center; }
+.stat { font-size: 44px; font-weight: bold; }
+.stat-label { font-size: 24px; color: #B0B3B8; }
+
+/* ------------------------------------------------------------ commentary */
 
 .content {
   flex: 1;
@@ -50,32 +185,13 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 16px;
   padding: 24px;
   text-align: center;
 }
 
-.commentary-text {
-  font-size: 22px;
-  font-weight: bold;
-  line-height: 1.4;
-  color: #FFFFFF;
-  margin: 0;
-}
+.commentary-text { font-size: 28px; font-weight: bold; line-height: 1.4; margin: 0; }
 
-.meta-text {
-  font-size: 12px;
-  color: #B0B3B8;
-  margin: 0;
-}
-
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
+/* ------------------------------------------------------------ misc */
 
 .loading-spinner {
   width: 32px;
@@ -85,41 +201,6 @@ html, body {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+.big-spinner { width: 72px; height: 72px; border-width: 6px; }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.error-message {
-  color: #E4E6EB;
-  font-size: 14px;
-}
-
-.nav-bar {
-  height: 88px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav-item {
-  height: 88px;
-  min-width: 200px;
-  padding: 0 24px;
-  background: #1C1E21;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: bold;
-  opacity: 0.8;
-  transition:
-    transform 475ms cubic-bezier(0.6, 0, 0.4, 1),
-    opacity 300ms cubic-bezier(0.4, 0.04, 0.5, 1);
-}
-
-.nav-item:focus {
-  outline: none;
-  opacity: 1.0;
-  transform: scale(calc(1 - 8 / 88));
-}
+@keyframes spin { to { transform: rotate(360deg); } }

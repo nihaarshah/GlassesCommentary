@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "webapp",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd commentary/webapp && node server.js"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "ui-backend",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": [
+        "commentary/tests/ui_backend.py"
+      ],
+      "port": 8787
+    }
+  ]
+}

@@ -88,10 +88,9 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
         t = now()
         run.steps[run.current_step].ended_at = t
         if run.current_step + 1 >= len(run.steps):
+            # Stays the active run so the glasses keep showing Done until Home.
             run.screen = "done"
             run.ended_at = t
-            if store.active_run_id() == run.id:
-                store.set_active_run(None)
         else:
             run.current_step += 1
             run.steps[run.current_step].started_at = run.steps[run.current_step].started_at or t
@@ -385,8 +384,6 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
             run.steps[run.current_step].ended_at = t
             run.screen, run.ended_at = "done", t
             store.save_run(run)
-        if store.active_run_id() == run_id:
-            store.set_active_run(None)
         store.set_setting("last_run", run.id)
         return run_view(run)
 

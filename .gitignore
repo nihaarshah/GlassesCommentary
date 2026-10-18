@@ -35,3 +35,6 @@ __pycache__/
 .vercel/
 .venv/
 .pytest_cache/
+
+# Eval photos (generated smoke set, real checkpoint photos)
+commentary/eval/data/
