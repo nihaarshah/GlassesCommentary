@@ -14,8 +14,9 @@ enum AppConfig {
     static let guideAPI = URL(string: "https://nihaarshah--glasses-guide-api.us-east.modal.run")!
 
     /// The deployed glasses web app (Vercel), which also serves review.html.
-    /// Set this to your vercel.app URL; until then the app shows the procedure id.
-    static let webAppBase: URL? = nil
+    /// The project's stable production alias -- not a per-deployment URL, which
+    /// changes on every `vercel --prod`.
+    static let webAppBase: URL? = URL(string: "https://webapp-flame-chi.vercel.app")
 
     /// Capture: the highest resolution that holds ~2 fps. Defaults to .high until
     /// the M0 measurements (Camera test mode) say otherwise.
