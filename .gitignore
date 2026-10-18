@@ -33,3 +33,5 @@ __pycache__/
 
 # Vercel (commentary/webapp/) -- machine-specific deployment link
 .vercel/
+.venv/
+.pytest_cache/

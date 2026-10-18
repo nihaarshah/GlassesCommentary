@@ -1,0 +1,88 @@
+{
+  "_comment": "Seed data for the demo task only. Reference images are rendered wiring DIAGRAMS (render_diagrams.py), not photos; replace them with the expert's photos from a real capture. Tips are placeholder guidance, not quotes from a recording. Wire colors assume red = +24V control, blue = 0V; edit to match the real panel.",
+  "id": "proc_seed_din_start_stop",
+  "title": "24V start/stop circuit",
+  "status": "published",
+  "steps": [
+    {
+      "id": "s1_mount",
+      "title": "Mount parts on rail",
+      "instruction": "Clip contactor, Stop, Start and pilot light onto the rail.",
+      "tips": ["Hook the top edge first, then press down until it clicks."],
+      "tools": [],
+      "parts": ["Contactor K1", "Stop pushbutton (NC)", "Start pushbutton (NO)", "Pilot light H1", "Terminal block +24V / 0V"],
+      "reference_image": "din_rail_start_stop/step1.jpg",
+      "check": "Contactor K1, Stop button, Start button and pilot light H1 all clipped on the DIN rail."
+    },
+    {
+      "id": "s2_24v_stop",
+      "title": "Wire +24V to Stop",
+      "instruction": "Run a red wire from +24V to Stop terminal 11.",
+      "tips": ["Strip about 8 mm, no more."],
+      "tools": ["Wire stripper", "Screwdriver 3 mm"],
+      "parts": ["Red wire"],
+      "reference_image": "din_rail_start_stop/step2.jpg",
+      "check": "Red wire from the +24V terminal to Stop terminal 11."
+    },
+    {
+      "id": "s3_stop_start",
+      "title": "Link Stop to Start",
+      "instruction": "Red wire from Stop terminal 12 to Start terminal 13.",
+      "tips": [],
+      "tools": ["Wire stripper", "Screwdriver 3 mm"],
+      "parts": ["Red wire"],
+      "reference_image": "din_rail_start_stop/step3.jpg",
+      "check": "Red wire from Stop terminal 12 to Start terminal 13."
+    },
+    {
+      "id": "s4_start_a1",
+      "title": "Wire Start to coil",
+      "instruction": "Red wire from Start terminal 14 to contactor A1.",
+      "tips": [],
+      "tools": ["Wire stripper", "Screwdriver 3 mm"],
+      "parts": ["Red wire"],
+      "reference_image": "din_rail_start_stop/step4.jpg",
+      "check": "Red wire from Start terminal 14 to contactor terminal A1."
+    },
+    {
+      "id": "s5_a2_0v",
+      "title": "Wire coil to 0V",
+      "instruction": "Blue wire from contactor A2 to the 0V terminal.",
+      "tips": [],
+      "tools": ["Wire stripper", "Screwdriver 3 mm"],
+      "parts": ["Blue wire"],
+      "reference_image": "din_rail_start_stop/step5.jpg",
+      "check": "Blue wire from contactor terminal A2 to the 0V terminal."
+    },
+    {
+      "id": "s6_pilot",
+      "title": "Wire the pilot light",
+      "instruction": "Pilot light X1 to A1 red, X2 to A2 blue.",
+      "tips": ["Two wires can share a terminal if both are fully under the clamp."],
+      "tools": ["Wire stripper", "Screwdriver 3 mm"],
+      "parts": ["Red wire", "Blue wire"],
+      "reference_image": "din_rail_start_stop/step6.jpg",
+      "check": "Red wire from pilot light X1 to contactor A1 and blue wire from pilot light X2 to contactor A2."
+    },
+    {
+      "id": "s7_seal_in",
+      "title": "Wire the seal-in contact",
+      "instruction": "Contactor 13 to Start 13, contactor 14 to A1.",
+      "tips": ["This keeps the coil on after you let go of Start."],
+      "tools": ["Wire stripper", "Screwdriver 3 mm"],
+      "parts": ["Red wire x2"],
+      "reference_image": "din_rail_start_stop/step7.jpg",
+      "check": "Red wire from contactor terminal 13 to Start terminal 13, and red wire from contactor terminal 14 to contactor A1."
+    },
+    {
+      "id": "s8_tug",
+      "title": "Tug-test every wire",
+      "instruction": "Pull each wire gently; nothing should move.",
+      "tips": ["A wire that slides out under a light tug will fail in the field."],
+      "tools": [],
+      "parts": [],
+      "reference_image": "din_rail_start_stop/step8.jpg",
+      "check": "Every wire end fully seated under its terminal clamp; no bare copper visible at any terminal."
+    }
+  ]
+}
