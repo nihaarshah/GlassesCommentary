@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var camera: GlassesCamera
     @State private var capture: CaptureSession
     @State private var guide: GuideSession
+    @State private var diagnostics: DiagnosticsRunner
     @State private var mode: Mode = .commentary
 
     init(wearables: WearablesInterface, wearablesViewModel: WearablesViewModel) {
@@ -42,6 +43,7 @@ struct ContentView: View {
         self._camera = State(wrappedValue: camera)
         self._capture = State(wrappedValue: CaptureSession(camera: camera))
         self._guide = State(wrappedValue: GuideSession(camera: camera))
+        self._diagnostics = State(wrappedValue: DiagnosticsRunner(wearables: wearables))
     }
 
     var body: some View {
@@ -71,6 +73,7 @@ struct ContentView: View {
     /// Only one mode may own the glasses camera at a time.
     private var cameraBusy: Bool {
         stream.isStreaming || capture.phase == .recording || guide.isActive || camera.isStreaming
+            || diagnostics.isRunning
     }
 
     private var registeredView: some View {
@@ -85,7 +88,10 @@ struct ContentView: View {
             case .commentary: commentaryView
             case .capture: CaptureView(capture: capture, camera: camera)
             case .guide: GuideView(guide: guide, camera: camera)
-            case .cameraTest: CameraTestView(camera: camera)
+            case .cameraTest:
+                DiagnosticsView(runner: diagnostics, disabled: camera.isStreaming)
+                Divider()
+                CameraTestView(camera: camera)
             }
             Spacer()
             GlassesLogView()
@@ -279,6 +285,29 @@ struct CameraStatus: View {
             }
             if let err = camera.lastError {
                 Text(err).font(.footnote).foregroundStyle(.red)
+            }
+        }
+    }
+}
+
+/// One tap: runs the camera/display matrix and uploads the report to the backend.
+struct DiagnosticsView: View {
+    var runner: DiagnosticsRunner
+    var disabled: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Glasses on and unfolded, glasses-guide closed. Keep this app open; about 4 minutes.")
+                .font(.footnote)
+            Button(runner.isRunning ? "Running…" : "Run diagnostics") {
+                Task { await runner.run() }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(runner.isRunning || disabled)
+            if !runner.status.isEmpty { Text(runner.status).font(.footnote).bold() }
+            ForEach(Array(runner.results.enumerated()), id: \.offset) { _, r in
+                Text("\(r.ok ? "✅" : "❌") \(r.name): \(r.framesReceived) frames \(r.frameSize) \(r.error ?? "")")
+                    .font(.caption)
             }
         }
     }

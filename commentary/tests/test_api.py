@@ -150,3 +150,11 @@ def test_stop_without_upload_marks_abandoned(client):
     out = c.post(f"/captures/{cap['id']}/stop").json()
     assert out["state"] == "error" and "before upload" in out["error"]
     assert c.get("/display").json()["mode"] == "home"
+
+
+def test_diag_reports_roundtrip(client):
+    c, _, _ = client
+    for i in range(22):
+        assert c.post("/diag", json={"run": i, "results": []}).json()["ok"]
+    got = c.get("/diag").json()
+    assert len(got) == 20 and got[-1]["run"] == 21 and "received_at" in got[-1]

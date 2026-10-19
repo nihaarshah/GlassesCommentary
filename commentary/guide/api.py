@@ -400,6 +400,20 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
         store.set_setting("last_run", run.id)
         return run_view(run)
 
+    # ------------------------------------------------------------------ diagnostics
+
+    @app.post("/diag")
+    def post_diag(body: dict = Body(...)) -> dict:
+        """On-device diagnostics report from the phone (camera/display matrix)."""
+        reports = list(store.kv.get("diag_reports", []))
+        reports.append({**body, "received_at": now()})
+        store.kv["diag_reports"] = reports[-20:]
+        return {"ok": True, "count": len(reports)}
+
+    @app.get("/diag")
+    def get_diag() -> list:
+        return list(store.kv.get("diag_reports", []))
+
     @app.post("/home")
     def go_home() -> dict:
         """Glasses 'Home' from the Done screen: clear the active run."""

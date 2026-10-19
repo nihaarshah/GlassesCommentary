@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		6E980BE5304505A800956472 /* MWDATCore in Frameworks */ = {isa = PBXBuildFile; productRef = 6E980BE4304505A800956472 /* MWDATCore */; };
 		6E980BE7304505B000956472 /* MWDATCamera in Frameworks */ = {isa = PBXBuildFile; productRef = 6E980BE6304505B000956472 /* MWDATCamera */; };
+		6E980BE9304505C000956472 /* MWDATDisplay in Frameworks */ = {isa = PBXBuildFile; productRef = 6E980BE8304505C000956472 /* MWDATDisplay */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			files = (
 				6E980BE5304505A800956472 /* MWDATCore in Frameworks */,
 				6E980BE7304505B000956472 /* MWDATCamera in Frameworks */,
+				6E980BE9304505C000956472 /* MWDATDisplay in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,6 +97,7 @@
 			packageProductDependencies = (
 				6E980BE4304505A800956472 /* MWDATCore */,
 				6E980BE6304505B000956472 /* MWDATCamera */,
+				6E980BE8304505C000956472 /* MWDATDisplay */,
 			);
 			productName = GlassesCommentary;
 			productReference = 6E980BCD3044FE4B00956472 /* GlassesCommentary.app */;
@@ -391,6 +394,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6E980BE03044FEE800956472 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
 			productName = MWDATCamera;
+		};
+		6E980BE8304505C000956472 /* MWDATDisplay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E980BE03044FEE800956472 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
+			productName = MWDATDisplay;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
