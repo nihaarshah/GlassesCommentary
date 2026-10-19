@@ -34,7 +34,14 @@ def extract(zip_path: str | Path, dest: str | Path) -> Bundle:
             if dest.resolve() not in target.parents and target != dest.resolve():
                 raise ValueError(f"unsafe path in bundle: {name}")
         zf.extractall(dest)
-    manifest = json.loads((dest / "manifest.json").read_text())
+    # iOS's system zipper (NSFileCoordinator .forUploading) wraps everything in a
+    # top-level folder, so accept manifest.json at the root or one level down.
+    candidates = [dest / "manifest.json", *sorted(dest.glob("*/manifest.json"))]
+    found = next((m for m in candidates if m.exists()), None)
+    if found is None:
+        raise ValueError("bundle has no manifest.json")
+    dest = found.parent
+    manifest = json.loads(found.read_text())
     frames = sorted(
         ({"t": float(f["t"]), "path": str(dest / f["file"])} for f in manifest["frames"]),
         key=lambda f: f["t"],

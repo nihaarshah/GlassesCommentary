@@ -51,6 +51,21 @@ def test_bundle_roundtrip(tmp_path):
     assert Path(b.frames[0]["path"]).exists()
 
 
+def test_bundle_accepts_ios_top_level_folder(tmp_path):
+    """The phone zips a directory, so files sit under capture-<id>/ in the zip."""
+    import zipfile
+
+    flat = tmp_path / "flat.zip"
+    bundle.write(flat, "T", [(0.0, jpeg()), (0.5, jpeg())], ("audio.m4a", b"aac"), started_at=0)
+    nested = tmp_path / "nested.zip"
+    with zipfile.ZipFile(flat) as src, zipfile.ZipFile(nested, "w") as dst:
+        for name in src.namelist():
+            dst.writestr(f"capture-cap_123/{name}", src.read(name))
+    b = bundle.extract(nested, tmp_path / "out")
+    assert len(b.frames) == 2 and Path(b.frames[1]["path"]).exists()
+    assert b.audio and b.audio.name == "audio.m4a"
+
+
 def test_bundle_rejects_zip_slip(tmp_path):
     import zipfile
 

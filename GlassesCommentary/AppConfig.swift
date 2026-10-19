@@ -29,14 +29,16 @@ enum AppConfig {
     /// changes on every `vercel --prod`.
     static let webAppBase: URL? = URL(string: "https://webapp-flame-chi.vercel.app")
 
-    /// Capture: the highest resolution that holds ~2 fps. Defaults to .high until
-    /// the M0 measurements (Camera test mode) say otherwise.
-    static let captureResolution: StreamingResolution = .high
+    /// Capture: the highest resolution that holds ~2 fps. On V131 firmware, .high
+    /// with the glasses web app open turned the display off and ended in "Critical
+    /// error, the stream should end"; .low streams fine. .medium until Camera test
+    /// says otherwise.
+    static let captureResolution: StreamingResolution = .medium
     static let captureFrameRate: UInt = 2
     static let captureJPEGQuality: CGFloat = 0.7
 
     /// Guide: frames go up ~1 Hz; Check picks the sharpest recent one server-side.
-    static let guideResolution: StreamingResolution = .high
+    static let guideResolution: StreamingResolution = .medium
     static let guideFrameRate: UInt = 2
     static let guideUploadInterval: TimeInterval = 1.0
     static let guideJPEGQuality: CGFloat = 0.75

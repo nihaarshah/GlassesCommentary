@@ -27,8 +27,11 @@ KEYFRAMES_PER_STEP = 4
 RECENT_FRAMES_KEPT = 6  # phone uploads ~1 Hz; Check picks the sharpest of these
 FRAME_MAX_AGE_S = 8.0  # older frames are ignored for a check
 # Below this Laplacian variance (on a 600 px-wide grayscale frame) we ask the user
-# to hold still instead of judging. Tune from M0 frames.
-BLUR_THRESHOLD = float(os.getenv("GUIDE_BLUR_THRESHOLD", "60"))
+# to hold still instead of judging. Calibrated on real Ray-Ban Display frames:
+# in-focus frames of plain scenes (bedsheet, cloth) score 5-20, so 60 rejected
+# everything. Only near-featureless smears fall under 3; anything else goes to
+# the model, which answers "unsure" when it can't see.
+BLUR_THRESHOLD = float(os.getenv("GUIDE_BLUR_THRESHOLD", "3"))
 # "stream": sharpest recent frame; "photo": ask the phone for capturePhoto(.jpeg).
 CHECK_SOURCE = os.getenv("GUIDE_CHECK_SOURCE", "stream")
 PHOTO_WAIT_S = 4.0
