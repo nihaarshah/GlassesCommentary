@@ -169,9 +169,12 @@ final class GlassesCamera {
         GlassesLog.shared.add("camera: stream \(state)")
         streamState = state
         if state == .stopped {
+            // Ended by the SDK or by stop(): release the session too, so the next
+            // start (or another mode) can create one for this device.
             streamTokenBag.clear()
             camera = nil
             isStreaming = false
+            deviceSession?.stop()
         }
     }
 

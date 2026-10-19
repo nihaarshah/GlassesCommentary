@@ -144,7 +144,10 @@ final class GlassesCommentaryStream {
             newCamera.stream.statePublisher.listen { [weak self] state in
                 Task { @MainActor [weak self] in
                     GlassesLog.shared.add("commentary: stream \(state)")
-                    if state == .stopped { self?.isStreaming = false }
+                    // The SDK can end the stream on its own (e.g. the DAT app on the
+                    // glasses became unreachable). Tear the session down too, or the
+                    // next session for this device fails with "already exists".
+                    if state == .stopped { self?.stop() }
                 }
             }.store(in: streamTokenBag)
             newCamera.stream.errorPublisher.listen { [weak self] error in
