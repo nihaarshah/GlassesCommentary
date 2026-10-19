@@ -9,6 +9,8 @@ import MWDATCamera
 enum AppConfig {
     /// Live Moondream commentary (commentary/modal_app.py), unchanged.
     static let commentaryCaptionURL = URL(string: "https://nihaarshah--glasses-commentary-commentary-caption.modal.run")!
+    /// Same app's GET endpoint; the phone pings it to wake the caption server.
+    static let commentaryLatestURL = URL(string: "https://nihaarshah--glasses-commentary-commentary-latest.modal.run")
 
     /// Live commentary stream. Valid DAT frame rates: 2, 7, 15, 24, 30, but on this
     /// glasses firmware (V131) with DAT 0.9.0, 15 fps ended in "Critical error, the

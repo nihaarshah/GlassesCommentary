@@ -33,6 +33,7 @@ final class GlassesCommentaryStream {
     private let frameRate: UInt
     private var lastSentAt: Date = .distantPast
     private var requestInFlight = false
+    private var serverWarm = false
     private var frameTimes: [Date] = []
 
     private let wearables: WearablesInterface
@@ -62,6 +63,7 @@ final class GlassesCommentaryStream {
     /// the session reports `.started` (see `observeSession`).
     func start() {
         guard deviceSession == nil else { return }
+        warmUpServer()
         GlassesLog.shared.add("commentary: creating session")
         do throws(DeviceSessionError) {
             let session = try wearables.createSession(deviceSelector: deviceSelector)
@@ -186,9 +188,31 @@ final class GlassesCommentaryStream {
         }
     }
 
+    /// The caption server scales to zero; a cold start (GPU + Moondream load) can
+    /// take longer than URLSession's default 60 s. Its GET `latest` endpoint lives on
+    /// the same GPU class, so hitting it boots a container while the glasses camera
+    /// is still starting.
+    private func warmUpServer() {
+        guard let latest = AppConfig.commentaryLatestURL else { return }
+        serverWarm = false
+        latestCommentary = "Warming up the commentary server…"
+        Task { [weak self] in
+            var req = URLRequest(url: latest)
+            req.timeoutInterval = 150
+            let ok = (try? await URLSession.shared.data(for: req)) != nil
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.serverWarm = ok
+                GlassesLog.shared.add("commentary: server \(ok ? "warm" : "warm-up failed")")
+            }
+        }
+    }
+
     private func sendCommentaryRequest(imageData: Data) async {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
+        // The first request may land on a cold container.
+        request.timeoutInterval = serverWarm ? 30 : 150
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body: [String: Any] = [
@@ -201,6 +225,8 @@ final class GlassesCommentaryStream {
             let (data, _) = try await URLSession.shared.data(for: request)
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             latestCommentary = json?["commentary"] as? String ?? ""
+            serverWarm = true
+            lastError = nil
         } catch {
             lastError = "commentary request failed: \(error.localizedDescription)"
         }
