@@ -158,3 +158,27 @@ def test_diag_reports_roundtrip(client):
         assert c.post("/diag", json={"run": i, "results": []}).json()["ok"]
     got = c.get("/diag").json()
     assert len(got) == 20 and got[-1]["run"] == 21 and "received_at" in got[-1]
+
+
+def test_work_record(seeded):
+    store, proc = seeded
+    answers = iter([{"verdict": "fail", "reason": "Seal-in wire 14 to A1 missing"},
+                    {"verdict": "pass", "reason": "All wires match"}])
+    c = TestClient(create_app(store, Services(verify=lambda r, f, ch: next(answers))))
+    c.put("/operator", json={"operator": "Dana <QA>"})
+    rid = c.post("/runs", json={"procedure_id": proc.id}).json()["id"]
+    c.post(f"/runs/{rid}/frames", content=jpeg(), headers={"Content-Type": "image/jpeg"})
+    c.post(f"/runs/{rid}/check")
+    c.post(f"/runs/{rid}/check")
+    c.post(f"/runs/{rid}/next")
+    c.post(f"/runs/{rid}/override", json={"note": "verified by supervisor"})
+    c.post(f"/runs/{rid}/finish")
+    r = c.get(f"/runs/{rid}/record")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    html = r.text
+    assert "Dana &lt;QA&gt;" in html  # escaped
+    assert "Seal-in wire 14 to A1 missing" in html and "Issue caught" in html
+    assert "Passed after fix" in html and "Overridden" in html and "verified by supervisor" in html
+    assert f"/media/{proc.steps[0].reference_image}" in html
+    assert c.get("/record/latest").status_code == 200
+    assert c.get("/runs/nope/record").status_code == 404

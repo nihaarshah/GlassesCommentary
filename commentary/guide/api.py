@@ -400,6 +400,25 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
         store.set_setting("last_run", run.id)
         return run_view(run)
 
+    @app.get("/runs/{run_id}/record", response_class=HTMLResponse)
+    def run_record(run_id: str) -> HTMLResponse:
+        """Printable work record (HTML -> Print / Save as PDF)."""
+        from .record import render_record
+
+        run = require_run(run_id)
+        return HTMLResponse(render_record(run, store.get_procedure(run.procedure_id)))
+
+    @app.get("/record/latest", response_class=HTMLResponse)
+    def latest_record() -> HTMLResponse:
+        """Record of the active run, or else the last finished one."""
+        from .record import render_record
+
+        run_id = store.active_run_id() or store.get_setting("last_run")
+        run = store.get_run(run_id) if run_id else None
+        if not run:
+            raise HTTPException(404, "no runs yet")
+        return HTMLResponse(render_record(run, store.get_procedure(run.procedure_id)))
+
     # ------------------------------------------------------------------ diagnostics
 
     @app.post("/diag")
