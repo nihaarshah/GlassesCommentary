@@ -10,11 +10,13 @@ enum AppConfig {
     /// Live Moondream commentary (commentary/modal_app.py), unchanged.
     static let commentaryCaptionURL = URL(string: "https://nihaarshah--glasses-commentary-commentary-caption.modal.run")!
 
-    /// Live commentary stream. Valid DAT frame rates: 2, 7, 15, 24, 30. Higher rates
-    /// get more Bluetooth compression (softer frames); 15 at .low is smooth enough
-    /// to always have a fresh frame. A caption is requested as soon as the last one
-    /// returns, at most once per `commentaryMinInterval`.
-    static let commentaryFrameRate: UInt = 15
+    /// Live commentary stream. Valid DAT frame rates: 2, 7, 15, 24, 30, but on this
+    /// glasses firmware (V131) with DAT 0.9.0, 15 fps ended in "Critical error, the
+    /// stream should end" while 2 fps streams fine. Captions don't need more: every
+    /// frame is decoded, so 2 fps always gives a frame <= 0.5 s old. A caption is
+    /// requested as soon as the last one returns, at most once per
+    /// `commentaryMinInterval`. Try higher rates in Camera test first.
+    static let commentaryFrameRate: UInt = 2
     static let commentaryMinInterval: TimeInterval = 1.0
 
     /// glasses-guide FastAPI app (commentary/guide/modal_app.py).
