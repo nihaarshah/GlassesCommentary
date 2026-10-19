@@ -68,7 +68,7 @@ def test_check_endpoint_records_attempts(seeded):
     answers = iter([{"verdict": "fail", "reason": "Seal-in wire missing"}, {"verdict": "pass", "reason": "Looks right"}])
 
     def verify(ref, frame, check):
-        assert ref and frame and check == proc.steps[0].check
+        assert ref and frame and check.startswith(proc.steps[0].check)
         return next(answers)
 
     c = TestClient(create_app(store, Services(verify=verify)))
@@ -94,3 +94,16 @@ def test_verifier_crash_is_error_not_pass(seeded):
     rid = c.post("/runs", json={"procedure_id": proc.id}).json()["id"]
     c.post(f"/runs/{rid}/frames", content=jpeg(), headers={"Content-Type": "image/jpeg"})
     assert c.post(f"/runs/{rid}/check").json()["last_attempt"]["verdict"] == "error"
+
+
+def test_check_context_reaches_verifier(seeded):
+    store, proc = seeded
+    p = store.get_procedure(proc.id)
+    p.check_context = "Panel shown as a diagram on a screen."
+    store.save_procedure(p)
+    seen = []
+    c = TestClient(create_app(store, Services(verify=lambda r, f, check: seen.append(check) or {"verdict": "pass", "reason": "ok"})))
+    rid = c.post("/runs", json={"procedure_id": proc.id}).json()["id"]
+    c.post(f"/runs/{rid}/frames", content=jpeg(), headers={"Content-Type": "image/jpeg"})
+    c.post(f"/runs/{rid}/check")
+    assert seen[0].startswith(proc.steps[0].check) and "Setup note: Panel shown as a diagram" in seen[0]

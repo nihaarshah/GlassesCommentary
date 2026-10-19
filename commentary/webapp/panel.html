@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Panel: 24V start/stop</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #F5F5F0; color: #1B1B1B; font: 16px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; }
+    body { display: flex; flex-direction: column; }
+    header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; }
+    header h1 { font-size: 18px; margin: 0 12px 0 0; }
+    button { font: inherit; padding: 6px 12px; border-radius: 8px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+    button.on { background: #1B1B1B; color: #fff; border-color: #1B1B1B; }
+    button.mistake.on { background: #C62828; border-color: #C62828; }
+    #label { font-weight: 600; }
+    main { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    main img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .hint { color: #6B6B6B; font-size: 13px; margin-left: auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>24V start/stop circuit</h1>
+    <div id="steps"></div>
+    <button id="mistake" class="mistake" title="Leave out the 13-14 seal-in wiring">Planted mistake: no seal-in</button>
+    <span id="label"></span>
+    <span class="hint">← → step · M mistake · F fullscreen</span>
+  </header>
+  <main><img id="img" alt="Wiring diagram"></main>
+  <script>
+    // Same circuit as the seed procedure (commentary/guide/seed); the panel state
+    // after each step, as the glasses camera should see it when the step is done.
+    var TITLES = ['Mount parts on rail', 'Wire +24V to Stop', 'Link Stop to Start', 'Wire Start to coil',
+                  'Wire coil to 0V', 'Wire the pilot light', 'Wire the seal-in contact', 'Tug-test every wire'];
+    var step = 1, mistake = false;
+
+    function render() {
+      var bad = mistake && step >= 7;
+      document.getElementById('img').src = 'panel/step' + step + (bad ? '_no_seal_in' : '') + '.jpg';
+      document.getElementById('label').textContent = 'Step ' + step + ': ' + TITLES[step - 1] +
+        (bad ? '  (seal-in left out)' : '');
+      document.querySelectorAll('#steps button').forEach(function (b) {
+        b.classList.toggle('on', +b.dataset.step === step);
+      });
+      document.getElementById('mistake').classList.toggle('on', mistake);
+      history.replaceState(null, '', '#' + step + (mistake ? 'm' : ''));
+    }
+
+    var bar = document.getElementById('steps');
+    TITLES.forEach(function (_, i) {
+      var b = document.createElement('button');
+      b.textContent = i + 1;
+      b.dataset.step = i + 1;
+      b.onclick = function () { step = i + 1; render(); };
+      bar.appendChild(b);
+    });
+    document.getElementById('mistake').onclick = function () { mistake = !mistake; render(); };
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') step = Math.min(8, step + 1);
+      else if (e.key === 'ArrowLeft') step = Math.max(1, step - 1);
+      else if (e.key === 'm' || e.key === 'M') mistake = !mistake;
+      else if (e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+      else return;
+      render();
+    });
+    var h = /^#(\d)(m?)$/.exec(location.hash);
+    if (h) { step = Math.min(8, Math.max(1, +h[1])); mistake = !!h[2]; }
+    render();
+  </script>
+</body>
+</html>

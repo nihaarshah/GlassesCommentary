@@ -91,6 +91,10 @@ class Procedure(BaseModel):
     updated_at: float = Field(default_factory=now)
     steps: list[Step]
     followups: list[FollowUp] = Field(default_factory=list)
+    check_context: str | None = Field(
+        default=None,
+        description="Optional note the verifier reads with every check (e.g. the work is shown as a diagram on a screen)",
+    )
 
     @field_validator("steps")
     @classmethod

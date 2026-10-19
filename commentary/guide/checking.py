@@ -45,7 +45,10 @@ def run_check(store: Store, verify: Callable[[bytes | None, bytes, str], dict], 
     else:
         ref = store.read_media(step.reference_image) if step.reference_image else None
         try:
-            result = verify(ref, jpeg, step.check)
+            check_text = step.check
+            if proc.check_context:
+                check_text = f"{step.check}\n(Setup note: {proc.check_context})"
+            result = verify(ref, jpeg, check_text)
         except Exception:  # noqa: BLE001 -- a crash is an error verdict, never a pass
             result = {"verdict": "error", "reason": "Check failed. Try again."}
         n = len(run.steps[run.current_step].attempts) + 1

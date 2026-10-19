@@ -38,7 +38,9 @@ enum AppConfig {
     static let captureJPEGQuality: CGFloat = 0.7
 
     /// Guide: frames go up ~1 Hz; Check picks the sharpest recent one server-side.
-    static let guideResolution: StreamingResolution = .low
+    // The glasses web app can't be open while the camera streams (V131 + DAT 0.9.0),
+    // so the guide UI runs in a laptop browser and the display limit no longer applies.
+    static let guideResolution: StreamingResolution = .medium
     static let guideFrameRate: UInt = 2
     static let guideUploadInterval: TimeInterval = 1.0
     static let guideJPEGQuality: CGFloat = 0.75
