@@ -76,6 +76,15 @@ struct ContentView: View {
             || diagnostics.isRunning
     }
 
+    /// Unattended testing: launched with GC_AUTORUN=diagnostics (devicectl passes
+    /// DEVICECTL_CHILD_GC_AUTORUN), the app runs the diagnostics matrix by itself.
+    private func autorunIfRequested() {
+        guard ProcessInfo.processInfo.environment["GC_AUTORUN"] == "diagnostics", !diagnostics.isRunning else { return }
+        mode = .cameraTest
+        GlassesLog.shared.add("autorun: diagnostics")
+        Task { await diagnostics.run() }
+    }
+
     private var registeredView: some View {
         VStack(spacing: 16) {
             Picker("Mode", selection: $mode) {
@@ -97,6 +106,7 @@ struct ContentView: View {
             GlassesLogView()
         }
         .padding()
+        .task { autorunIfRequested() }
     }
 
     private var commentaryView: some View {

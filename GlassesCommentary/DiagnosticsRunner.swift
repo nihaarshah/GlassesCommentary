@@ -88,12 +88,15 @@ final class DiagnosticsRunner {
             let result = await runOne(exp)
             results.append(result)
             GlassesLog.shared.add("diag: \(exp.name) -> \(result.ok ? "OK" : "FAIL") frames=\(result.framesReceived) \(result.error ?? "")")
+            print("DIAG \(exp.name): \(result.ok ? "OK" : "FAIL") frames=\(result.framesReceived) fps=\(result.fps) size=\(result.frameSize) display=\(result.displayStarted) err=\(result.error ?? "-")")
+            result.events.forEach { print("DIAG   \($0)") }
             try? await Task.sleep(for: .seconds(3))  // let the glasses settle between sessions
         }
         status = "Uploading report…"
         await upload()
         let passed = results.filter(\.ok).count
         status = "Done: \(passed)/\(results.count) passed. Report uploaded."
+        print("DIAG DONE \(passed)/\(results.count)")
     }
 
     // MARK: - One experiment
