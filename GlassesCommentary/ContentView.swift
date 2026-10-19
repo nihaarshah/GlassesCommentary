@@ -174,6 +174,7 @@ struct CaptureView: View {
                 case .recording:
                     Button("Stop & upload") { Task { await capture.stop() } }
                         .buttonStyle(.borderedProminent).tint(.red)
+                    Button("Cancel") { Task { await capture.cancel() } }
                 case .done, .failed:
                     Button("New capture") { capture.reset() }
                 default:

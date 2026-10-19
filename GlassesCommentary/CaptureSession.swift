@@ -30,8 +30,31 @@ final class CaptureSession {
     private var lastFrameAt: TimeInterval = -1
     private var recordingStartedAt: Date?
 
+    private static let openCaptureKey = "openCaptureID"
+
     init(camera: GlassesCamera) {
         self.camera = camera
+        releaseOrphanedCapture()
+    }
+
+    /// If the app was closed or killed mid-capture, tell the server so the glasses
+    /// don't stay on REC.
+    private func releaseOrphanedCapture() {
+        guard let id = UserDefaults.standard.string(forKey: Self.openCaptureKey) else { return }
+        UserDefaults.standard.removeObject(forKey: Self.openCaptureKey)
+        Task { [api] in _ = try? await api.json("POST", "captures/\(id)/stop") }
+    }
+
+    /// Stop without uploading (wrong start, false take).
+    func cancel() async {
+        guard phase == .recording, let id = captureID else { return }
+        camera.onFrame = nil
+        camera.stop()
+        audio.stop()
+        UIApplication.shared.isIdleTimerDisabled = false
+        UserDefaults.standard.removeObject(forKey: Self.openCaptureKey)
+        _ = try? await api.json("POST", "captures/\(id)/stop")
+        reset()
     }
 
     func start() async {
@@ -40,6 +63,7 @@ final class CaptureSession {
             let cap = try await api.json("POST", "captures/start", body: ["title": title])
             guard let id = cap["id"] as? String else { throw GuideAPIError.badResponse }
             captureID = id
+            UserDefaults.standard.set(id, forKey: Self.openCaptureKey)
             let dir = FileManager.default.temporaryDirectory.appending(path: "capture-\(id)", directoryHint: .isDirectory)
             try? FileManager.default.removeItem(at: dir)
             try FileManager.default.createDirectory(at: dir.appending(path: "frames"), withIntermediateDirectories: true)
@@ -89,6 +113,7 @@ final class CaptureSession {
         camera.stop()
         audio.stop()
         UIApplication.shared.isIdleTimerDisabled = false
+        UserDefaults.standard.removeObject(forKey: Self.openCaptureKey)
 
         let audioOffset = audio.startedAt.map { $0.timeIntervalSince(started) } ?? 0
         let hasAudio = FileManager.default.fileExists(atPath: dir.appending(path: "audio.m4a").path)
