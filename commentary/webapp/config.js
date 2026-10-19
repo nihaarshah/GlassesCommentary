@@ -8,7 +8,7 @@ window.APP_CONFIG = {
   // live Moondream commentary (commentary/modal_app.py), unchanged
   commentaryLatestUrl: 'https://nihaarshah--glasses-commentary-commentary-latest.modal.run',
   displayPollMs: 1000,
-  commentaryPollMs: 4000,
+  commentaryPollMs: 1000,
   passAdvanceMs: 1500,
 };
 

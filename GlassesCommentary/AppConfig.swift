@@ -10,6 +10,13 @@ enum AppConfig {
     /// Live Moondream commentary (commentary/modal_app.py), unchanged.
     static let commentaryCaptionURL = URL(string: "https://nihaarshah--glasses-commentary-commentary-caption.modal.run")!
 
+    /// Live commentary stream. Valid DAT frame rates: 2, 7, 15, 24, 30. Higher rates
+    /// get more Bluetooth compression (softer frames); 15 at .low is smooth enough
+    /// to always have a fresh frame. A caption is requested as soon as the last one
+    /// returns, at most once per `commentaryMinInterval`.
+    static let commentaryFrameRate: UInt = 15
+    static let commentaryMinInterval: TimeInterval = 1.0
+
     /// glasses-guide FastAPI app (commentary/guide/modal_app.py).
     static let guideAPI = URL(string: "https://nihaarshah--glasses-guide-api.us-east.modal.run")!
 

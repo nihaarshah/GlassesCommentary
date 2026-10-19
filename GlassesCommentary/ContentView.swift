@@ -31,7 +31,12 @@ struct ContentView: View {
         self.wearables = wearables
         self.wearablesViewModel = wearablesViewModel
         self._stream = State(
-            wrappedValue: GlassesCommentaryStream(wearables: wearables, endpoint: AppConfig.commentaryCaptionURL)
+            wrappedValue: GlassesCommentaryStream(
+                wearables: wearables,
+                endpoint: AppConfig.commentaryCaptionURL,
+                minInterval: AppConfig.commentaryMinInterval,
+                frameRate: AppConfig.commentaryFrameRate
+            )
         )
         let camera = GlassesCamera(wearables: wearables)
         self._camera = State(wrappedValue: camera)
@@ -90,7 +95,7 @@ struct ContentView: View {
 
     private var commentaryView: some View {
         VStack(spacing: 24) {
-            Text(stream.isStreaming ? "Streaming" : "Not connected")
+            Text(stream.isStreaming ? "Streaming · \(String(format: "%.1f", stream.measuredFPS)) fps" : "Not connected")
                 .foregroundStyle(.secondary)
 
             Text(stream.latestCommentary.isEmpty ? "Waiting for first frame…" : stream.latestCommentary)
@@ -218,6 +223,7 @@ struct GuideView: View {
 struct CameraTestView: View {
     var camera: GlassesCamera
     @State private var resolution: StreamingResolution = .low
+    @State private var fps: UInt = 2
     @State private var photoInfo = ""
 
     var body: some View {
@@ -231,12 +237,17 @@ struct CameraTestView: View {
             }
             .pickerStyle(.segmented)
             .disabled(camera.isStreaming)
+            Picker("Frame rate", selection: $fps) {
+                ForEach([UInt(2), 7, 15, 24, 30], id: \.self) { Text("\($0) fps").tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .disabled(camera.isStreaming)
             let nominal = resolution.videoFrameSize
             Text("SDK size: \(nominal.width)×\(nominal.height)").font(.footnote)
             CameraStatus(camera: camera)
             HStack {
                 Button(camera.isStreaming ? "Stop" : "Stream") {
-                    camera.isStreaming ? camera.stop() : camera.start(resolution: resolution, frameRate: 2)
+                    camera.isStreaming ? camera.stop() : camera.start(resolution: resolution, frameRate: fps)
                 }
                 .buttonStyle(.borderedProminent)
                 Button("Photo mid-stream") {

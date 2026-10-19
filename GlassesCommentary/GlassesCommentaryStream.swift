@@ -24,11 +24,16 @@ final class GlassesCommentaryStream {
     var latestCommentary: String = ""
     var lastError: String?
     private(set) var isStreaming = false
+    /// Decoded frames per second over the last ~5 s, for the on-phone readout.
+    private(set) var measuredFPS: Double = 0
 
     private let endpoint: URL
     private let prompt: String
     private let minInterval: TimeInterval
+    private let frameRate: UInt
     private var lastSentAt: Date = .distantPast
+    private var requestInFlight = false
+    private var frameTimes: [Date] = []
 
     private let wearables: WearablesInterface
     private let deviceSelector: AutoDeviceSelector
@@ -42,13 +47,15 @@ final class GlassesCommentaryStream {
         wearables: WearablesInterface,
         endpoint: URL,
         prompt: String = "Describe what you see in one short sentence.",
-        minInterval: TimeInterval = 4.0
+        minInterval: TimeInterval,
+        frameRate: UInt
     ) {
         self.wearables = wearables
         self.deviceSelector = AutoDeviceSelector(wearables: wearables)
         self.endpoint = endpoint
         self.prompt = prompt
         self.minInterval = minInterval
+        self.frameRate = frameRate
     }
 
     /// Creates and starts a device session; the camera stream is started once
@@ -124,7 +131,7 @@ final class GlassesCommentaryStream {
         let config = StreamConfiguration(
             videoCodec: VideoCodec.hvc1,
             resolution: StreamingResolution.low,
-            frameRate: 2
+            frameRate: frameRate
         )
         do {
             guard let newCamera = try session.addCamera(config: config) else {
@@ -156,20 +163,26 @@ final class GlassesCommentaryStream {
         }
     }
 
-    /// `VideoFrameDecoder` is thread-safe and documented as callable from any
-    /// thread, so this stays nonisolated and only hops to the main actor to
-    /// touch `lastSentAt`/`latestCommentary`.
+    /// Every frame is decoded -- HEVC frames depend on the ones before them, so
+    /// decoding only the occasional frame fails and the decoder falls back to its
+    /// last good (stale) image. A frame is sent as soon as the previous caption
+    /// comes back, at most once per `minInterval`, so requests never pile up.
     private nonisolated func handleFrame(_ frame: VideoFrame) {
         Task { @MainActor [weak self] in
-            guard let self else { return }
+            guard let self, let image = self.videoFrameDecoder.decode(frame.sampleBuffer) else { return }
             let now = Date()
-            guard now.timeIntervalSince(self.lastSentAt) >= self.minInterval else { return }
-            self.lastSentAt = now
+            self.frameTimes.append(now)
+            self.frameTimes.removeAll { now.timeIntervalSince($0) > 5 }
+            if let first = self.frameTimes.first, self.frameTimes.count > 1 {
+                self.measuredFPS = Double(self.frameTimes.count - 1) / now.timeIntervalSince(first)
+            }
 
-            guard let image = self.videoFrameDecoder.decode(frame.sampleBuffer),
+            guard !self.requestInFlight, now.timeIntervalSince(self.lastSentAt) >= self.minInterval,
                   let jpegData = image.jpegData(compressionQuality: 0.7) else { return }
-
+            self.lastSentAt = now
+            self.requestInFlight = true
             await self.sendCommentaryRequest(imageData: jpegData)
+            self.requestInFlight = false
         }
     }
 
