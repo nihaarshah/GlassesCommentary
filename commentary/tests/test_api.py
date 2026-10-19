@@ -130,3 +130,23 @@ def test_process_spawns_pipeline(seeded):
     c.post(f"/captures/{cap['id']}/bundle", content=b"PK\x03\x04")
     assert c.post(f"/captures/{cap['id']}/process").json()["state"] == "processing"
     assert spawned == [cap["id"]]
+
+
+def test_abandoned_capture_releases_glasses(client):
+    c, store, _ = client
+    cap = c.post("/captures/start").json()
+    stored = store.get_capture(cap["id"])
+    stored.started_at -= 31 * 60  # phone walked away 31 minutes ago
+    store.save_capture(stored)
+    assert c.get("/display").json()["mode"] == "home"
+    assert c.get(f"/captures/{cap['id']}").json()["state"] == "error"
+    # a late upload still goes through
+    assert c.post(f"/captures/{cap['id']}/bundle", content=b"PK\x03\x04").json()["state"] == "uploaded"
+
+
+def test_stop_without_upload_marks_abandoned(client):
+    c, _, _ = client
+    cap = c.post("/captures/start").json()
+    out = c.post(f"/captures/{cap['id']}/stop").json()
+    assert out["state"] == "error" and "before upload" in out["error"]
+    assert c.get("/display").json()["mode"] == "home"

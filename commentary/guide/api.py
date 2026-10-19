@@ -84,6 +84,12 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
             out["step"] = proc.steps[run.current_step].model_dump(mode="json")
         return out
 
+    def abandon(cap: CaptureStatus, why: str) -> None:
+        cap.state, cap.error = "error", why
+        store.save_capture(cap)
+        if store.active_capture_id() == cap.id:
+            store.set_active_capture(None)
+
     def advance(run: Run) -> Run:
         t = now()
         run.steps[run.current_step].ended_at = t
@@ -109,7 +115,11 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
         cap_id = store.active_capture_id()
         if cap_id:
             cap = store.get_capture(cap_id)
-            if cap and cap.state == "recording":
+            if cap and cap.state == "recording" and now() - cap.started_at > config.CAPTURE_STALE_S:
+                # The phone never uploaded (app closed, crashed, walked away): don't
+                # leave the glasses stuck on REC. A late upload still works.
+                abandon(cap, "abandoned: no upload within the time limit")
+            elif cap and cap.state == "recording":
                 return {"mode": "recording", "capture": cap.model_dump(mode="json"), "server_t": now()}
         run_id = store.active_run_id()
         if run_id:
@@ -210,11 +220,14 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
         cap = store.get_capture(cap_id)
         if not cap:
             raise HTTPException(404, "capture not found")
+        if cap.state == "recording":
+            if store.read_media(f"captures/{cap_id}/bundle.zip"):
+                cap.state = "uploaded"
+                store.save_capture(cap)
+            else:
+                abandon(cap, "stopped before upload")
         if store.active_capture_id() == cap_id:
             store.set_active_capture(None)
-        if cap.state == "recording":
-            cap.state = "uploaded" if store.read_media(f"captures/{cap_id}/bundle.zip") else "recording"
-            store.save_capture(cap)
         return cap.model_dump(mode="json")
 
     @app.post("/captures/{cap_id}/bundle")

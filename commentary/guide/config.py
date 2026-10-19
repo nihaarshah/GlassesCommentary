@@ -33,6 +33,11 @@ BLUR_THRESHOLD = float(os.getenv("GUIDE_BLUR_THRESHOLD", "60"))
 CHECK_SOURCE = os.getenv("GUIDE_CHECK_SOURCE", "stream")
 PHOTO_WAIT_S = 4.0
 
+# --- capture ----------------------------------------------------------------------
+# A capture still "recording" after this long is treated as abandoned so the
+# glasses don't stay on REC forever if the phone never uploads.
+CAPTURE_STALE_S = 30 * 60
+
 # --- pipeline --------------------------------------------------------------------------
 MIN_STEPS = 6
 MAX_STEPS = 15
