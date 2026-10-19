@@ -108,7 +108,8 @@
       '<nav class="nav-bar three">' +
         button('check', '&#10003; Check') +
         button('showme', '&#9654; Show me', (s.clip || (s.keyframes || []).length) ? '' : ' disabled') +
-        button('back', '&#8592; Back', run.current_step === 0 ? ' disabled' : '') +
+        // On step 1 there's nothing to go back to: leave the run instead.
+        (run.current_step === 0 ? button('home', '&#10005; Exit') : button('back', '&#8592; Back')) +
       '</nav></div>';
   }
 
