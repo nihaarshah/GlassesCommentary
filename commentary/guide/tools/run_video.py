@@ -153,7 +153,7 @@ def step_slide(proc_title, step_no, total, step, attempt, ref, shot, note=None) 
     d.text((60, 40), proc_title.upper(), font=font(24, True), fill=MUTED)
     d.text((60, 76), f"Step {step_no} of {total}:  {step['title']}", font=font(52, True), fill=INK)
     d.text((60, 146), f"Check: {step['check']}", font=font(26), fill=MUTED)
-    panel(c, (60, 210, 640, 830), glasses_screen(step_no, total, step, attempt), "What the wearer sees (glasses display)")
+    panel(c, (60, 210, 640, 830), glasses_screen(step_no, total, step, attempt), "Guide screen (glasses display layout)")
     panel(c, (680, 210, 1260, 830), ref, "Expert reference")
     panel(c, (1300, 210, 1860, 830), shot, "What the glasses camera saw")
     if attempt:
@@ -255,7 +255,7 @@ def main() -> None:
 
     refs: dict[str, Image.Image | None] = {}
     slides: list[tuple[Image.Image, float]] = [
-        (card([(a.title, 72, INK), ("Ray-Ban Display glasses · phone camera stream · AI step checks", 36, MUTED)]), 4.0),
+        (card([(a.title, 72, INK), ("Ray-Ban Display glasses camera · AI step checks · auto work record", 36, MUTED)]), 4.0),
         (flow_card(), 6.0),
     ]
     segment = []
