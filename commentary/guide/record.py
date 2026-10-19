@@ -90,7 +90,7 @@ def render_record(run: Run, proc: Procedure | None, media_base: str = "/media") 
                 f"<div class='override'><b>Override</b> at {_clock(rs.override.at)}: {escape(rs.override.note)}</div>"
             )
         details.append(
-            "<section class='step'>"
+            f"<section class='step' id='step-{i}'>"
             f"<h3>{i}. {escape(title)} <span class='tag {cls}'>{label}</span></h3>"
             f"<p class='muted'>{escape(step.instruction) if step else ''}</p>"
             f"<p><b>Check:</b> {escape(step.check) if step else '—'}</p>"

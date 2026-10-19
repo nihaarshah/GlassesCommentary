@@ -41,13 +41,17 @@ colors and terminal labels the CHECK names.
   Say exactly what to bring closer or into view.
 
 Never pass on a guess. If any required item can't be confirmed, answer "unsure".
-reason: at most {REASON_MAX_WORDS} words, plain words for the worker, e.g.
-"Seal-in wire 14 to A1 missing" or "Move closer to contactor terminals 13-14"."""
+reason: one short, complete phrase of at most 10 words, plain words for the
+worker, e.g. "Seal-in wire 14 to A1 missing" or "Move closer to terminals 13-14"."""
 
 
 def clip_reason(reason: str, limit: int = REASON_MAX_WORDS) -> str:
+    """Hard cap; the prompt asks for <= 10 words so this rarely bites. When it
+    does, mark the cut with an ellipsis rather than ending mid-phrase silently."""
     words = (reason or "").split()
-    return " ".join(words[:limit]) if words else ""
+    if len(words) <= limit:
+        return " ".join(words)
+    return " ".join(words[:limit]).rstrip(",;:") + "…"
 
 
 def parse_verdict(data: dict) -> dict:
