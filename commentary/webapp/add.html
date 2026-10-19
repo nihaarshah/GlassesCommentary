@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Add to glasses</title>
+  <style>
+    body { margin: 0; padding: 24px 16px; font: 17px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; background: #F4F4F2; color: #1B1B1B; }
+    @media (prefers-color-scheme: dark) { body { background: #121212; color: #EDEDED; } code { background: #2A2A2A; } }
+    main { max-width: 480px; margin: 0 auto; }
+    h1 { font-size: 24px; margin: 0 0 8px; }
+    a.add { display: block; margin: 24px 0; padding: 18px; border-radius: 14px; background: #1F5EFF; color: #fff; text-align: center; font-size: 20px; font-weight: 700; text-decoration: none; }
+    ol { padding-left: 20px; }
+    code { display: block; padding: 10px; border-radius: 8px; background: #E8E8E4; font-size: 13px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Add Guide to your glasses</h1>
+    <p>Open this page on the iPhone paired with your Ray-Ban Display glasses.</p>
+    <a class="add" id="add" href="#">Add to glasses</a>
+    <ol>
+      <li>Tap <b>Add to glasses</b>, then <b>Open</b> when iOS asks to open Meta AI.</li>
+      <li>Confirm adding the web app in Meta AI.</li>
+      <li>On the glasses, open <b>glasses-guide</b> from your apps.</li>
+    </ol>
+    <p>The link it opens:</p>
+    <code id="link"></code>
+  </main>
+  <script>
+    // Meta AI's web-app deep link, pointed at wherever this page is served from.
+    var link = 'fb-viewapp://web_app_deep_link?appName=glasses-guide&appUrl=' +
+      encodeURIComponent(location.origin);
+    document.getElementById('add').href = link;
+    document.getElementById('link').textContent = link;
+  </script>
+</body>
+</html>

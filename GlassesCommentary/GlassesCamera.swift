@@ -53,6 +53,7 @@ final class GlassesCamera {
         config = StreamConfiguration(videoCodec: .hvc1, resolution: resolution, frameRate: frameRate)
         configuredResolution = resolution
         lastError = nil
+        GlassesLog.shared.add("camera: creating session (\(resolution), \(frameRate) fps)")
         do throws(DeviceSessionError) {
             let session = try wearables.createSession(deviceSelector: deviceSelector)
             deviceSession = session
@@ -60,6 +61,7 @@ final class GlassesCamera {
             try session.start()
         } catch {
             lastError = error.localizedDescription
+            GlassesLog.shared.add("camera: session error: \(error.localizedDescription)")
             deviceSession = nil
         }
     }
@@ -99,6 +101,7 @@ final class GlassesCamera {
         session.statePublisher.listen { [weak self] state in
             Task { @MainActor in
                 guard let self else { return }
+                GlassesLog.shared.add("camera: session \(state)")
                 if state == .started {
                     await self.beginStreamingIfNeeded(on: session)
                 } else if state == .stopped {
@@ -110,7 +113,10 @@ final class GlassesCamera {
         }.store(in: sessionTokenBag)
 
         session.errorPublisher.listen { [weak self] error in
-            Task { @MainActor [weak self] in self?.lastError = error.localizedDescription }
+            Task { @MainActor [weak self] in
+                self?.lastError = error.localizedDescription
+                GlassesLog.shared.add("camera: session error: \(error.localizedDescription)")
+            }
         }.store(in: sessionTokenBag)
     }
 
@@ -121,6 +127,7 @@ final class GlassesCamera {
             if !granted {
                 granted = try await wearables.requestPermission(.camera) == .granted
             }
+            GlassesLog.shared.add("camera: permission \(granted ? "granted" : "denied")")
             guard granted else {
                 lastError = "Camera permission denied"
                 return
@@ -159,6 +166,7 @@ final class GlassesCamera {
     }
 
     private func handleStreamState(_ state: StreamState) {
+        GlassesLog.shared.add("camera: stream \(state)")
         streamState = state
         if state == .stopped {
             streamTokenBag.clear()
@@ -169,6 +177,7 @@ final class GlassesCamera {
 
     /// Thermal / battery / doff errors pause or stop streaming; say so plainly.
     private func handleStreamError(_ error: StreamError) {
+        GlassesLog.shared.add("camera: stream error: \(error.description)")
         switch error {
         case .thermalCritical, .thermalEmergency:
             lastError = "Glasses are too hot. Streaming paused until they cool down."

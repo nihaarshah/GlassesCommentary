@@ -83,6 +83,7 @@ struct ContentView: View {
             case .cameraTest: CameraTestView(camera: camera)
             }
             Spacer()
+            GlassesLogView()
         }
         .padding()
     }
@@ -268,6 +269,28 @@ struct CameraStatus: View {
                 Text(err).font(.footnote).foregroundStyle(.red)
             }
         }
+    }
+}
+
+/// What the glasses session/stream actually did, newest last.
+struct GlassesLogView: View {
+    @State private var expanded = true
+    private var log = GlassesLog.shared
+
+    var body: some View {
+        DisclosureGroup("Glasses log", isExpanded: $expanded) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(log.lines.enumerated()), id: \.offset) { _, line in
+                        Text(line).font(.caption2.monospaced()).textSelection(.enabled)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: 160)
+            Button("Clear") { log.clear() }.font(.caption)
+        }
+        .font(.footnote)
     }
 }
 

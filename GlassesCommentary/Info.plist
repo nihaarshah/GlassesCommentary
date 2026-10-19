@@ -27,9 +27,21 @@
 		<string>glassescommentary://</string>
 		<key>MetaAppID</key>
 		<string>0</string>
+		<key>TeamID</key>
+		<string>$(DEVELOPMENT_TEAM)</string>
 	</dict>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Needed to connect to your Ray-Ban Display glasses</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This lets your phone find and connect to your glasses over Wi-Fi.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_bonjour._tcp</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>processing</string>
+		<string>bluetooth-central</string>
 		<string>bluetooth-peripheral</string>
 		<string>external-accessory</string>
 	</array>

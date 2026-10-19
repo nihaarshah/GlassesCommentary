@@ -55,6 +55,7 @@ final class GlassesCommentaryStream {
     /// the session reports `.started` (see `observeSession`).
     func start() {
         guard deviceSession == nil else { return }
+        GlassesLog.shared.add("commentary: creating session")
         do throws(DeviceSessionError) {
             let session = try wearables.createSession(deviceSelector: deviceSelector)
             deviceSession = session
@@ -62,6 +63,7 @@ final class GlassesCommentaryStream {
             try session.start()
         } catch {
             lastError = error.localizedDescription
+            GlassesLog.shared.add("commentary: session error: \(error.localizedDescription)")
             deviceSession = nil
         }
     }
@@ -78,6 +80,7 @@ final class GlassesCommentaryStream {
         session.statePublisher.listen { [weak self] state in
             Task { @MainActor in
                 guard let self else { return }
+                GlassesLog.shared.add("commentary: session \(state)")
                 if state == .started {
                     await self.beginStreamingIfNeeded(on: session)
                 } else if state == .stopped {
@@ -89,7 +92,10 @@ final class GlassesCommentaryStream {
         }.store(in: sessionTokenBag)
 
         session.errorPublisher.listen { [weak self] error in
-            Task { @MainActor in self?.lastError = error.localizedDescription }
+            Task { @MainActor [weak self] in
+                self?.lastError = error.localizedDescription
+                GlassesLog.shared.add("commentary: session error: \(error.localizedDescription)")
+            }
         }.store(in: sessionTokenBag)
     }
 
@@ -104,12 +110,14 @@ final class GlassesCommentaryStream {
             if !granted {
                 granted = try await wearables.requestPermission(.camera) == .granted
             }
+            GlassesLog.shared.add("commentary: camera permission \(granted ? "granted" : "denied")")
             guard granted else {
                 lastError = "Camera permission denied"
                 return
             }
         } catch {
             lastError = error.localizedDescription
+            GlassesLog.shared.add("commentary: permission error: \(error.localizedDescription)")
             return
         }
 
@@ -124,13 +132,27 @@ final class GlassesCommentaryStream {
                 return
             }
             camera = newCamera
+            newCamera.stream.statePublisher.listen { [weak self] state in
+                Task { @MainActor [weak self] in
+                    GlassesLog.shared.add("commentary: stream \(state)")
+                    if state == .stopped { self?.isStreaming = false }
+                }
+            }.store(in: streamTokenBag)
+            newCamera.stream.errorPublisher.listen { [weak self] error in
+                Task { @MainActor [weak self] in
+                    self?.lastError = error.localizedDescription
+                    GlassesLog.shared.add("commentary: stream error: \(error.localizedDescription)")
+                }
+            }.store(in: streamTokenBag)
             newCamera.stream.videoFramePublisher.listen { [weak self] frame in
                 self?.handleFrame(frame)
             }.store(in: streamTokenBag)
             newCamera.stream.start()
             isStreaming = true
+            GlassesLog.shared.add("commentary: camera added, stream starting")
         } catch {
             lastError = error.localizedDescription
+            GlassesLog.shared.add("commentary: addCamera error: \(error.localizedDescription)")
         }
     }
 
