@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from fastapi import Body, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from pydantic import BaseModel
@@ -314,17 +315,19 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
     @app.post("/runs/{run_id}/frames")
     async def upload_frame(run_id: str, request: Request) -> dict:
         """Phone Guide mode posts a raw JPEG body ~1 Hz."""
-        run = require_run(run_id)
+        run = await run_in_threadpool(require_run, run_id)
         if run.screen == "done":
             raise HTTPException(409, "run finished")
         data = await request.body()
         img = frames.decode_jpeg(data)
         if img is None:
             raise HTTPException(400, "body must be a JPEG")
-        store.push_frame(
+        # The store is a blocking modal.Dict: keep it off the event loop.
+        await run_in_threadpool(
+            store.push_frame,
             run_id,
             {"t": now(), "sharpness": frames.sharpness(img), "jpeg": data},
-            keep=config.RECENT_FRAMES_KEPT,
+            config.RECENT_FRAMES_KEPT,
         )
         return {"ok": True}
 

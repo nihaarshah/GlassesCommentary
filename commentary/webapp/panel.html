@@ -14,8 +14,10 @@
     button.on { background: #1B1B1B; color: #fff; border-color: #1B1B1B; }
     button.mistake.on { background: #C62828; border-color: #C62828; }
     #label { font-weight: 600; }
-    main { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    main img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    main { flex: 1; min-height: 0; position: relative; }
+    /* Fill the screen (the source image is only 600 px wide, so max-width alone
+       left it small in a sea of white and tiny in the glasses camera's view). */
+    main img { position: absolute; inset: 8px 8px 64px; width: calc(100% - 16px); height: calc(100% - 72px); object-fit: contain; }
     .hint { color: #6B6B6B; font-size: 13px; margin-left: auto; }
     #verdict { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 20px; font-size: 22px; font-weight: 700;
                color: #fff; background: #333; display: none; }

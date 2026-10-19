@@ -17,6 +17,8 @@ final class GuideSession {
     private(set) var stepText = ""
     private(set) var lastVerdict = ""
     private(set) var framesSent = 0
+    /// What the glasses camera sees right now (~1 Hz), so the wearer can aim.
+    private(set) var viewfinder: UIImage?
     var operatorName = "Operator"
     var lastError: String?
 
@@ -92,6 +94,7 @@ final class GuideSession {
                     _ = try await api.raw("runs/\(id)/photo", data: photo, contentType: "image/jpeg")
                 }
             }
+            if let image = latest { viewfinder = image }
             if let image = latest, let jpeg = resized(image).jpegData(compressionQuality: AppConfig.guideJPEGQuality) {
                 _ = try await api.raw("runs/\(id)/frames", data: jpeg, contentType: "image/jpeg")
                 framesSent += 1

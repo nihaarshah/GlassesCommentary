@@ -222,6 +222,18 @@ struct GuideView: View {
                 Text(guide.stepText)
                 if !guide.lastVerdict.isEmpty { Text(guide.lastVerdict).font(.footnote) }
                 Text("Frames sent: \(guide.framesSent)").font(.footnote).foregroundStyle(.secondary)
+                if let frame = guide.viewfinder {
+                    // Aim with this: the glasses camera sits at the frame's corner,
+                    // not where your eyes are.
+                    Image(uiImage: frame)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(alignment: .topLeading) {
+                            Text("Glasses camera").font(.caption2).padding(4).background(.black.opacity(0.6)).foregroundStyle(.white)
+                        }
+                }
             } else {
                 Text("Start, then pick the task on the glasses. Keep the phone app open.")
             }
