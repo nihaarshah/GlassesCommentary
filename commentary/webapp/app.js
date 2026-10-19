@@ -227,9 +227,11 @@
     var run = state.display && state.display.run;
     if (name === 'result' && run && run.last_attempt && run.last_attempt.verdict === 'pass' && state.advancedFor !== run.last_attempt.at) {
       var attemptAt = run.last_attempt.at;
+      var fromStep = run.current_step;
       state.advanceTimer = setTimeout(function() {
         state.advancedFor = attemptAt;
-        act('next');
+        // from_step: a no-op if another screen (the panel page) already advanced.
+        api('POST', '/runs/' + run.id + '/next?from_step=' + fromStep).then(function(r) { applyRun(r); render(); });
       }, CONFIG.passAdvanceMs);
     }
   }

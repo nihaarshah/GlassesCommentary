@@ -182,3 +182,11 @@ def test_work_record(seeded):
     assert f"/media/{proc.steps[0].reference_image}" in html
     assert c.get("/record/latest").status_code == 200
     assert c.get("/runs/nope/record").status_code == 404
+
+
+def test_next_from_step_is_idempotent(client):
+    c, _, proc = client
+    rid = c.post("/runs", json={"procedure_id": proc.id}).json()["id"]
+    assert c.post(f"/runs/{rid}/next?from_step=0").json()["current_step"] == 1
+    assert c.post(f"/runs/{rid}/next?from_step=0").json()["current_step"] == 1  # second client: no-op
+    assert c.post(f"/runs/{rid}/next").json()["current_step"] == 2  # plain next still works

@@ -356,9 +356,11 @@ def create_app(store: Store, services: Services | None = None) -> FastAPI:
         return run_view(run)
 
     @app.post("/runs/{run_id}/next")
-    def next_step(run_id: str) -> dict:
+    def next_step(run_id: str, from_step: int | None = None) -> dict:
+        """from_step makes auto-advance idempotent: two clients (glasses app and
+        panel page) advancing after the same pass move the run on only once."""
         run = require_run(run_id)
-        if run.screen == "done":
+        if run.screen == "done" or (from_step is not None and from_step != run.current_step):
             return run_view(run)
         run = advance(run)
         store.save_run(run)

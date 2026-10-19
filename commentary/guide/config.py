@@ -26,6 +26,11 @@ KEYFRAMES_PER_STEP = 4
 # --- guide mode ----------------------------------------------------------------------
 RECENT_FRAMES_KEPT = 6  # phone uploads ~1 Hz; Check picks the sharpest of these
 FRAME_MAX_AGE_S = 8.0  # older frames are ignored for a check
+# A check judges what's in view *after* the press: wait up to this long for frames
+# newer than the press (the phone uploads ~1 Hz), else fall back to recent ones.
+# Frames from before the press can show the wearer looking away to tap or click.
+CHECK_FRESH_WAIT_S = float(os.getenv("GUIDE_CHECK_FRESH_WAIT_S", "2.5"))
+CHECK_FRESH_MIN_FRAMES = 2
 # Below this Laplacian variance (on a 600 px-wide grayscale frame) we ask the user
 # to hold still instead of judging. Calibrated on real Ray-Ban Display frames:
 # in-focus frames of plain scenes (bedsheet, cloth) score 5-20, so 60 rejected

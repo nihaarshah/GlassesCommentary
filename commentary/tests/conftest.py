@@ -10,6 +10,14 @@ from guide.store import Store  # noqa: E402
 SEED_DIR = Path(__file__).resolve().parents[1] / "guide" / "seed"
 
 
+@pytest.fixture(autouse=True)
+def _no_fresh_frame_wait(monkeypatch):
+    """Checks normally wait for frames newer than the press; tests push frames first."""
+    from guide import config
+
+    monkeypatch.setattr(config, "CHECK_FRESH_WAIT_S", 0.0)
+
+
 @pytest.fixture
 def store(tmp_path):
     return Store({}, tmp_path / "media")

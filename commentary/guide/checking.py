@@ -20,16 +20,30 @@ def _wait_for_photo(store: Store, run_id: str, request_id: str, wait_s: float) -
     return None
 
 
-def pick_image(store: Store, run: Run) -> tuple[bytes | None, str]:
+def _fresh_frames(store: Store, run_id: str, pressed_at: float, wait_s: float, min_frames: int) -> list[dict]:
+    """Frames uploaded after the press, waiting up to wait_s for min_frames of them."""
+    deadline = time.time() + wait_s
+    while True:
+        fresh = [f for f in store.recent_frames(run_id) if f["t"] >= pressed_at]
+        if len(fresh) >= min_frames or time.time() >= deadline:
+            return fresh
+        time.sleep(0.2)
+
+
+def pick_image(store: Store, run: Run, pressed_at: float | None = None) -> tuple[bytes | None, str]:
     """Still photo if configured (and the phone answers in time), else the sharpest
-    recent stream frame."""
+    stream frame taken after the press, else the sharpest recent one."""
     if config.CHECK_SOURCE == "photo":
         req = new_id("photo")
         store.request_photo(run.id, req)
         jpeg = _wait_for_photo(store, run.id, req, config.PHOTO_WAIT_S)
         if jpeg:
             return jpeg, "photo"
-    best = frames.pick_sharpest(store.recent_frames(run.id), now=now(), max_age_s=config.FRAME_MAX_AGE_S)
+    pressed_at = pressed_at if pressed_at is not None else now()
+    fresh = _fresh_frames(store, run.id, pressed_at, config.CHECK_FRESH_WAIT_S, config.CHECK_FRESH_MIN_FRAMES)
+    best = frames.pick_sharpest(fresh) if fresh else None
+    if best is None:
+        best = frames.pick_sharpest(store.recent_frames(run.id), now=now(), max_age_s=config.FRAME_MAX_AGE_S)
     return (best["jpeg"], "stream") if best else (None, "stream")
 
 
@@ -37,7 +51,7 @@ def run_check(store: Store, verify: Callable[[bytes | None, bytes, str], dict], 
     started = time.time()
     proc = store.get_procedure(run.procedure_id)
     step = proc.steps[run.current_step]
-    jpeg, source = pick_image(store, run)
+    jpeg, source = pick_image(store, run, pressed_at=now())
 
     if jpeg is None:
         result = {"verdict": "error", "reason": "No camera frames. Is the phone streaming?"}

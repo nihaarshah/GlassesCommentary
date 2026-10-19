@@ -107,3 +107,34 @@ def test_check_context_reaches_verifier(seeded):
     c.post(f"/runs/{rid}/frames", content=jpeg(), headers={"Content-Type": "image/jpeg"})
     c.post(f"/runs/{rid}/check")
     assert seen[0].startswith(proc.steps[0].check) and "Setup note: Panel shown as a diagram" in seen[0]
+
+
+def test_check_prefers_frames_taken_after_the_press(seeded):
+    """Frames from before the press (e.g. looking away to click) must not be judged
+    when fresh ones arrive."""
+    import threading
+    import time as _time
+
+    from guide import checking, config, frames as fr
+    from guide.schemas import Run
+
+    store, proc = seeded
+    run = Run.start(proc, "t")
+    store.save_run(run)
+    before = jpeg(sharp=True)  # very sharp, but taken before the press
+    store.push_frame(run.id, {"t": _time.time() - 1, "sharpness": 9999.0, "jpeg": before}, keep=6)
+    after = jpeg(sharp=True, size=(320, 240))
+    pressed = _time.time()
+
+    def upload_later():
+        _time.sleep(0.3)
+        store.push_frame(run.id, {"t": _time.time(), "sharpness": fr.sharpness_jpeg(after), "jpeg": after}, keep=6)
+
+    threading.Thread(target=upload_later).start()
+    old = config.CHECK_FRESH_WAIT_S
+    config.CHECK_FRESH_WAIT_S, config.CHECK_FRESH_MIN_FRAMES = 2.0, 1
+    try:
+        got, _ = checking.pick_image(store, run, pressed_at=pressed)
+    finally:
+        config.CHECK_FRESH_WAIT_S, config.CHECK_FRESH_MIN_FRAMES = old, 2
+    assert got == after

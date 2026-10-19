@@ -17,6 +17,10 @@
     main { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
     main img { max-width: 100%; max-height: 100%; object-fit: contain; }
     .hint { color: #6B6B6B; font-size: 13px; margin-left: auto; }
+    #verdict { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 20px; font-size: 22px; font-weight: 700;
+               color: #fff; background: #333; display: none; }
+    #verdict.pass { background: #1E7D32; } #verdict.fail { background: #C62828; } #verdict.warn { background: #B26A00; }
+    #verdict.busy { background: #333; }
   </style>
 </head>
 <body>
@@ -25,9 +29,11 @@
     <div id="steps"></div>
     <button id="mistake" class="mistake" title="Leave out the 13-14 seal-in wiring">Planted mistake: no seal-in</button>
     <span id="label"></span>
-    <span class="hint">← → step · M mistake · F fullscreen</span>
+    <span class="hint">← → step · M mistake · F fullscreen · Space = Check</span>
   </header>
   <main><img id="img" alt="Wiring diagram"></main>
+  <div id="verdict"></div>
+  <script src="config.js"></script>
   <script>
     // Same circuit as the seed procedure (commentary/guide/seed); the panel state
     // after each step, as the glasses camera should see it when the step is done.
@@ -56,7 +62,51 @@
       bar.appendChild(b);
     });
     document.getElementById('mistake').onclick = function () { mistake = !mistake; render(); };
+    // Space = Check on the active guided run, so you keep looking at the panel
+    // (the check judges frames taken after the press). The verdict shows below;
+    // the guide window advances on a pass as usual.
+    var checking = false;
+    function banner(text, cls) {
+      var v = document.getElementById('verdict');
+      v.textContent = text;
+      v.className = cls;
+      v.style.display = 'block';
+    }
+    function check() {
+      if (checking) return;
+      var api = window.APP_CONFIG.guideApi;
+      checking = true;
+      banner('Checking… keep looking at the panel', 'busy');
+      fetch(api + '/runs/active', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error('No guided run active. Start one in the guide window.'); return r.json(); })
+        .then(function (run) { return fetch(api + '/runs/' + run.id + '/check', { method: 'POST' }); })
+        .then(function (r) { if (!r.ok) throw new Error('Check failed (HTTP ' + r.status + ')'); return r.json(); })
+        .then(function (run) {
+          var a = run.last_attempt || {};
+          var label = { pass: '✓ ', fail: '⚠ Not yet: ', unsure: '⚠ Look closer: ', hold_still: '⚠ Hold still: ', error: '⚠ ' }[a.verdict] || '';
+          banner(label + (a.reason || '') + '  (step ' + (run.current_step + 1) + ' of ' + run.total_steps + ')',
+                 a.verdict === 'pass' ? 'pass' : a.verdict === 'fail' ? 'fail' : 'warn');
+          if (a.verdict === 'pass') {
+            // Advance the run like the glasses app does; from_step makes it a no-op
+            // if the guide window already did. Then show the next step's diagram.
+            var from = run.current_step;
+            setTimeout(function () {
+              fetch(api + '/runs/' + run.id + '/next?from_step=' + from, { method: 'POST' })
+                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                  if (r.screen === 'done') { banner('✓ All steps done. Open the work record.', 'pass'); return; }
+                  banner('Step ' + (r.current_step + 1) + ' of ' + r.total_steps + ': ' + ((r.step || {}).title || ''), 'busy');
+                  if (!mistake) { step = Math.min(8, r.current_step + 1); render(); }
+                });
+            }, window.APP_CONFIG.passAdvanceMs);
+          }
+        })
+        .catch(function (e) { banner('⚠ ' + e.message, 'warn'); })
+        .then(function () { checking = false; });
+    }
+
     document.addEventListener('keydown', function (e) {
+      if (e.key === ' ') { e.preventDefault(); check(); return; }
       if (e.key === 'ArrowRight') step = Math.min(8, step + 1);
       else if (e.key === 'ArrowLeft') step = Math.max(1, step - 1);
       else if (e.key === 'm' || e.key === 'M') mistake = !mistake;
